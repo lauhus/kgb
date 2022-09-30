@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer';
 import './models/question.dart';
@@ -43,8 +42,8 @@ class _QuestionsPageState extends State<QuestionsPage> {
     Question question1 = Question(0, "Le ciel est-il bleu?" , "oui", [ "oui" , "non" ] , true);
     Question question2 = Question(1, "L'herbe est-elle verte?" , "oui", [ "oui" , "non" ] , true);
     Question question3 = Question(2, "Les chats font-ils miaou ?" , "oui", [ "oui" , "non" ], true);
-    Question question4 = Question(3, "Les chiens font-ils ouafs?" , "oui", [ "oui" , "non" ] , true);
-    Question question5 = Question(4, "Quel jours somme-nous?" , "29", [], true);
+    Question question4 = Question(3, "Les chiens font-ils ouafs?" , "oui", [ "oui" , "non" , "bob" ] , true);
+    Question question5 = Question(4, "Quel jours somme-nous?" , "30", [], true);
     Question question6 = Question(5, "Quel es ce personnage ?" , "Harry potter" , [] , true , "https://media-mcetv.ouest-france.fr/wp-content/uploads/2022/09/harry-potter-top-10-des-fois-ou-les-mechants-ont-ete-justes-.jpeg");
 
 
@@ -60,10 +59,15 @@ class _QuestionsPageState extends State<QuestionsPage> {
   }
   
   
-  setList(Question _question) {
+  setList(Question _question , String reponse) {
     setState(() {
+      if (reponse.toLowerCase() == _question.rightAnswer.toLowerCase()) {
+        _question.response = true;
+      } else {
+        _question.response = false;
+      }
       questionsList.removeWhere((element) => element.content == _question.content);
-      Question updateQuestion = Question(_question.id , _question.content , _question.rightAnswer , _question.propositions , false);
+      Question updateQuestion = Question(_question.id , _question.content , _question.rightAnswer , _question.propositions , false , "" , _question.response);
       questionsList.add(updateQuestion);
 
     });
@@ -88,22 +92,35 @@ class _QuestionsPageState extends State<QuestionsPage> {
         child: ListView.builder(
             itemCount: questionsList.length,
             itemBuilder: (context, index) {
-              return  questionsList[index].active == true ? GestureDetector(
-                onTap: (){ _questionPage(questionsList[index] , setList , questionsList ,  setResult , result);},
+              return questionsList[index].active == true ? GestureDetector(
+                onTap: () {
+                  _questionPage(
+                      questionsList[index], setList, questionsList, setResult,
+                      result);
+                },
                 child: Card(
-                    child: ListTile(
-                      title: Text(questionsList[index].content),
-                    ),
+                  child: ListTile(
+                    title: Text(questionsList[index].content),
+                  ),
                 ),
               ) : Card(
-                  color: Colors.grey[700],
-                  child: ListTile(
-                  title: Text(questionsList[index].content),
-                  ),
+                  color: Colors.grey[500],
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(child: ListTile(
+                        title: Text(questionsList[index].content),
+                      ),),
+                      Expanded(child: Icon(questionsList[index].response! ? Icons.check : Icons
+                          .close))
+                      
+
+                    ],
+                  )
               );
-            }),
-       ),
-    );
+            }
+              )
+              )
+              );
   }
 
    _questionPage(Question question , setList , list , setResult , result) {
@@ -154,7 +171,7 @@ class _QuestionPageState extends State<QuestionPage> {
       _showMyDialogAlert();
     }
     setState(() {
-      widget.setList(widget.question);
+      widget.setList(widget.question , response);
       if (response.toLowerCase() == widget.question.rightAnswer.toLowerCase()) {
          newResult = widget.result +1 ;
          widget.setResult(newResult);
@@ -224,12 +241,14 @@ class _QuestionPageState extends State<QuestionPage> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-        height: 400.0,
-        width: 200.0,
+        height: 410.0,
+        width: 350,
         child:Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(widget.question.content),
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text(widget.question.content)),
         Image.network(
           widget.question.image != null ?
           widget.question.image as String:
@@ -240,26 +259,32 @@ class _QuestionPageState extends State<QuestionPage> {
             widget.question.propositions.isNotEmpty ?
           ListView.builder(
           itemCount: widget.question.propositions.length,
+
             itemBuilder: (context, index) {
-              return  Container(
-                  height: 150.0,
-                    child: Row(
-                  children: <Widget>[
-                    Text(widget.question.propositions[index]),
-                    Checkbox(
-                      checkColor: Colors.white,
-                      value: response == widget.question.propositions[index],
-                      onChanged: (bool? value) {
-                        setState(() {
-                          if (value!) {
-                            response = widget.question.propositions[index];
-                          } else {
-                            response = "";
-                          }
-                        });
-                      },
-                    ),
-                  ]
+              return  Padding (
+                padding: const EdgeInsets.all(20.0),
+                child: Container(
+                    height: 20.0,
+                    width: 350,
+                      child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Text(widget.question.propositions[index]),
+                            Checkbox(
+                              checkColor: Colors.white,
+                              value: response == widget.question.propositions[index],
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  if (value!) {
+                                    response = widget.question.propositions[index];
+                                  } else {
+                                    response = "";
+                                  }
+                                });
+                              },
+                            ),
+                          ]
+                      )
                   )
               );
             },
